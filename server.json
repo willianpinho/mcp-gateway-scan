@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.willianpinho/mcp-gateway-scan",
+  "description": "Read-only static scanner for MCP/agent-gateway production-readiness anti-patterns, exposed as an MCP tool (scan_gateway). Scores a repo across 7 security dimensions. Never executes code, never makes network calls, never prints secret values.",
+  "title": "MCP Gateway Scan",
+  "repository": {
+    "url": "https://github.com/willianpinho/mcp-gateway-scan",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "mcp-gateway-scan",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "valueHint": "mcp",
+          "description": "Run as a stdio MCP server exposing the read-only scan_gateway tool (instead of the default one-shot CLI scan)."
+        }
+      ]
+    }
+  ]
+}
