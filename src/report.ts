@@ -34,7 +34,11 @@ function wrap(text: string, indent: number, width = 76): string[] {
 }
 
 /** Render the human-readable terminal report. */
-export function renderText(result: ScanResult, useColor: boolean): string {
+export function renderText(
+  result: ScanResult,
+  useColor: boolean,
+  showCta = true,
+): string {
   const b = (s: string) => (useColor ? `${BOLD}${s}${RESET}` : s);
   const dim = (s: string) => (useColor ? `${DIM}${s}${RESET}` : s);
   const cyan = (s: string) => (useColor ? `${CYAN}${s}${RESET}` : s);
@@ -106,33 +110,37 @@ export function renderText(result: ScanResult, useColor: boolean): string {
   );
   out.push("");
 
-  // Closing CTA.
-  const launchBlocked =
-    result.dimensions.find((d) => d.id === "D2")?.color === "red" ||
-    result.score.red > 0;
-  if (launchBlocked) {
+  // Closing CTA (human report only; suppressible via --no-cta).
+  if (showCta) {
+    const launchBlocked =
+      result.dimensions.find((d) => d.id === "D2")?.color === "red" ||
+      result.score.red > 0;
+    if (launchBlocked) {
+      out.push(
+        cyan(
+          "  → Reds above are launch blockers. A full readiness audit produces the cited",
+        ),
+      );
+      out.push(
+        cyan("    Gap Matrix + a sequenced 90-day remediation roadmap."),
+      );
+    } else {
+      out.push(
+        cyan(
+          "  → No reds. A full readiness audit verifies fail-close behavior with",
+        ),
+      );
+      out.push(
+        cyan("    staged fault-injection and closes the remaining yellows."),
+      );
+    }
     out.push(
-      cyan(
-        "  → Reds above are launch blockers. A full readiness audit produces the cited",
+      dim(
+        "    Get the full Provenwright MCP Gateway Readiness Audit → https://willianpinho.com/mcp-audit",
       ),
     );
-    out.push(cyan("    Gap Matrix + a sequenced 90-day remediation roadmap."));
-  } else {
-    out.push(
-      cyan(
-        "  → No reds. A full readiness audit verifies fail-close behavior with",
-      ),
-    );
-    out.push(
-      cyan("    staged fault-injection and closes the remaining yellows."),
-    );
+    out.push("");
   }
-  out.push(
-    dim(
-      "    Get the 7-dimension MCP Gateway Readiness Audit → https://willianpinho.com/mcp-audit",
-    ),
-  );
-  out.push("");
 
   return out.join("\n");
 }
