@@ -1,4 +1,4 @@
-import { capEvidence, findLines } from "../match.js";
+import { capEvidence, findAntiPattern, findLines } from "../match.js";
 import type {
   DimensionModule,
   DimensionResult,
@@ -23,23 +23,23 @@ export const d3SupplyChain: DimensionModule = {
   id: "D3",
   title: "Onboarding & supply-chain pinning",
   run(ctx: ScanContext): DimensionResult {
-    const unpinned = findLines(
+    const unpinned = findAntiPattern(
       ctx,
       UNPINNED,
-      { label: "unpinned/floating dependency", polarity: "negative" },
+      { label: "unpinned/floating dependency" },
       { codeOnly: true },
     );
     const pinned = findLines(
       ctx,
       PINNED,
       { label: "digest/checksum pinning", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const allowlist = findLines(
       ctx,
       ALLOWLIST,
       { label: "server allowlist", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
 
     let color: DimensionResult["color"];

@@ -1,4 +1,5 @@
 import { anyMatch, capEvidence } from "../match.js";
+import { classifyLines } from "../match-context.js";
 import type {
   DimensionModule,
   DimensionResult,
@@ -29,14 +30,20 @@ function findFailOpen(ctx: ScanContext): Evidence[] {
   const out: Evidence[] = [];
   for (const file of ctx.files) {
     if (file.relPath.endsWith(".md") || file.relPath.endsWith(".txt")) continue;
+    const classes = classifyLines(file);
     for (let i = 0; i < file.lines.length; i++) {
       const line = file.lines[i];
-      if (line === undefined || !CATCH_START.test(line)) continue;
+      const cls = classes[i];
+      if (line === undefined || cls === undefined) continue;
+      // The catch trigger must be real code, not a comment/doc line.
+      if (cls.comment || cls.meta || !CATCH_START.test(line)) continue;
       // Look at the catch line itself plus the next 4 lines.
       const windowEnd = Math.min(i + 5, file.lines.length);
       for (let j = i; j < windowEnd; j++) {
         const wl = file.lines[j];
-        if (wl === undefined) continue;
+        const wcls = classes[j];
+        if (wl === undefined || wcls === undefined) continue;
+        if (wcls.comment || wcls.meta) continue; // skip commentary inside the block
         if (FAILOPEN_RESULT.test(wl)) {
           const t = wl.trim();
           out.push({

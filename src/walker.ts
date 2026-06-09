@@ -61,6 +61,18 @@ const SCANNED_FILENAMES = new Set([
 /** Hard cap on per-file size so a stray binary/data blob never blows up memory. */
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
+/**
+ * Heuristic binary detection: a NUL byte in the first 4KB means it is not a text
+ * file we should pattern-scan, even if its extension is allowlisted. Read-only.
+ */
+function looksBinary(content: string): boolean {
+  const len = Math.min(content.length, 4096);
+  for (let i = 0; i < len; i++) {
+    if (content.charCodeAt(i) === 0) return true; // NUL byte => binary
+  }
+  return false;
+}
+
 function isScannable(name: string): boolean {
   if (SCANNED_FILENAMES.has(name)) return true;
   const dot = name.lastIndexOf(".");
@@ -103,14 +115,15 @@ export function loadFiles(root: string): ScanFile[] {
         continue;
       }
       if (!st.isFile()) continue;
-      if (st.size > MAX_FILE_BYTES) continue;
+      if (st.size > MAX_FILE_BYTES) continue; // skip oversized files gracefully
       if (!isScannable(name)) continue;
       let content: string;
       try {
         content = readFileSync(abs, "utf8");
       } catch {
-        continue;
+        continue; // unreadable (permissions, race) — skip, read-only contract
       }
+      if (looksBinary(content)) continue; // skip binary blobs in text extensions
       out.push({
         absPath: abs,
         relPath: relative(root, abs).split(sep).join("/") || name,
@@ -122,13 +135,17 @@ export function loadFiles(root: string): ScanFile[] {
 
   const rootStat = statSync(root);
   if (rootStat.isFile()) {
-    const content = readFileSync(root, "utf8");
-    out.push({
-      absPath: root,
-      relPath: root,
-      content,
-      lines: content.split(/\r?\n/),
-    });
+    if (rootStat.size <= MAX_FILE_BYTES) {
+      const content = readFileSync(root, "utf8");
+      if (!looksBinary(content)) {
+        out.push({
+          absPath: root,
+          relPath: root,
+          content,
+          lines: content.split(/\r?\n/),
+        });
+      }
+    }
     return out;
   }
   walk(root);

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Read-only static scanner for MCP/agent-gateway production-readiness anti-patterns. Scores a repo across 7 dimensions.",
   "license": "MIT",
+  "author": "Willian Pinho",
   "type": "module",
   "bin": {
     "mcp-gateway-scan": "dist/cli.js"
@@ -12,11 +13,20 @@
     "README.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/willianpinho/mcp-gateway-scan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/willianpinho/mcp-gateway-scan/issues"
+  },
+  "homepage": "https://github.com/willianpinho/mcp-gateway-scan#readme",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start": "node dist/cli.js",
-    "selftest": "node dist/cli.js fixtures/vulnerable && node dist/cli.js fixtures/secure"
+    "selftest": "node dist/cli.js fixtures/vulnerable --ci; node dist/cli.js fixtures/secure --ci",
+    "prepublishOnly": "pnpm typecheck && pnpm build"
   },
   "keywords": [
     "mcp",

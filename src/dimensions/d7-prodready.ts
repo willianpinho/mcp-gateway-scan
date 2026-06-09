@@ -31,25 +31,25 @@ export const d7ProdReady: DimensionModule = {
       ctx,
       KILL_SWITCH,
       { label: "kill-switch / feature flag", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const rate = findLines(
       ctx,
       RATE_429,
       { label: "rate limit / 429", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const evalGate = findLines(
       ctx,
       EVAL_REDTEAM,
       { label: "eval / red-team gate", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const rollout = findLines(
       ctx,
       ROLLOUT,
       { label: "staged rollout / rollback", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
 
     const hasKill = killSwitch.length > 0;

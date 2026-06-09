@@ -1,4 +1,9 @@
-import { capEvidence, codeFileCount, findLines } from "../match.js";
+import {
+  capEvidence,
+  codeFileCount,
+  findAntiPattern,
+  findLines,
+} from "../match.js";
 import type {
   DimensionModule,
   DimensionResult,
@@ -37,7 +42,7 @@ export const d4Observability: DimensionModule = {
       ctx,
       TRACEPARENT,
       { label: "W3C trace-context propagation", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const semconv = findLines(
       ctx,
@@ -45,10 +50,10 @@ export const d4Observability: DimensionModule = {
       { label: "GenAI semconv attribute", polarity: "positive" },
       { codeOnly: true, skipComments: true },
     );
-    const leaks = findLines(
+    const leaks = findAntiPattern(
       ctx,
       LOG_LEAK,
-      { label: "raw prompt/secret in logs", polarity: "negative" },
+      { label: "raw prompt/secret in logs" },
       { codeOnly: true },
     );
 

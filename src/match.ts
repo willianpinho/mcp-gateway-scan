@@ -1,4 +1,5 @@
-import type { Color, Evidence, ScanContext, ScanFile } from "./types.js";
+import { classifyLines } from "./match-context.js";
+import type { Evidence, ScanContext, ScanFile } from "./types.js";
 
 /** Max chars kept from a matched line in evidence excerpts. */
 const EXCERPT_MAX = 120;
@@ -72,6 +73,56 @@ export function findLines(
   return results;
 }
 
+export interface AntiPatternOptions {
+  /** Skip prose (.md/.txt) files entirely. */
+  codeOnly?: boolean;
+  /**
+   * Only fire when the matched line is inside prompt context (a prompt template
+   * literal or a YAML prompt field). Use for "authorization-in-prompt".
+   */
+  requirePrompt?: boolean;
+}
+
+/**
+ * Find anti-pattern matches with false-positive suppression. ALWAYS excludes
+ * comment-only lines and "meta" lines that merely document the pattern (grep
+ * recipes, regex alternations, "pattern"/"example" prose). With `requirePrompt`,
+ * additionally requires the line to be inside prompt content — so a doc comment
+ * quoting `rg 'only use|if the user is admin'` is never flagged, but the same
+ * words inside a system-prompt string ARE.
+ *
+ * The bar: every row this returns must be defensible to a skeptical engineer.
+ */
+export function findAntiPattern(
+  ctx: ScanContext,
+  pattern: RegExp,
+  meta: { label: string },
+  opts: AntiPatternOptions = {},
+): Evidence[] {
+  const results: Evidence[] = [];
+  for (const file of ctx.files) {
+    if (opts.codeOnly && isProse(file)) continue;
+    const classes = classifyLines(file);
+    for (let i = 0; i < file.lines.length; i++) {
+      const line = file.lines[i];
+      const cls = classes[i];
+      if (line === undefined || cls === undefined) continue;
+      if (cls.comment || cls.meta) continue; // never flag comments/docs
+      if (opts.requirePrompt && !cls.inPrompt) continue;
+      if (pattern.test(line)) {
+        results.push({
+          file: file.relPath,
+          line: i + 1,
+          excerpt: trimExcerpt(line),
+          polarity: "negative",
+          label: meta.label,
+        });
+      }
+    }
+  }
+  return results;
+}
+
 /** True if ANY line in the corpus matches `pattern`. */
 export function anyMatch(
   ctx: ScanContext,
@@ -97,13 +148,4 @@ export function codeFileCount(ctx: ScanContext): number {
 /** Cap evidence lists so the report stays readable. */
 export function capEvidence(evidence: Evidence[], max = 8): Evidence[] {
   return evidence.slice(0, max);
-}
-
-/**
- * Standard color rollup helper: red wins, then yellow, then green.
- */
-export function worst(...colors: Color[]): Color {
-  if (colors.includes("red")) return "red";
-  if (colors.includes("yellow")) return "yellow";
-  return "green";
 }

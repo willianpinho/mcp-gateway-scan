@@ -137,6 +137,33 @@ export function renderText(result: ScanResult, useColor: boolean): string {
   return out.join("\n");
 }
 
+/**
+ * Render compact, no-color CI output: one line per dimension plus a verdict.
+ * Designed to be greppable in pipeline logs. Exit code (set by the CLI) is 1
+ * when any dimension is red, so `--ci` can gate a build.
+ */
+export function renderCi(result: ScanResult): string {
+  const out: string[] = [];
+  out.push(`mcp-gateway-scan v${result.version}  target=${result.target}`);
+  out.push(`files_scanned=${result.scannedFiles}`);
+  for (const d of result.dimensions) {
+    const status = d.color.toUpperCase().padEnd(6);
+    const findings = d.evidence.filter((e) => e.polarity === "negative").length;
+    out.push(
+      `${status} ${d.id} ${d.severity} ${d.title} (findings=${findings})`,
+    );
+  }
+  out.push(
+    `RESULT green=${result.score.green} yellow=${result.score.yellow} red=${result.score.red}`,
+  );
+  out.push(
+    result.score.red > 0
+      ? "VERDICT FAIL — red dimension(s) present; see findings above."
+      : "VERDICT PASS — no red dimensions.",
+  );
+  return `${out.join("\n")}\n`;
+}
+
 /** Render the machine-readable JSON report (already schema-validated upstream). */
 export function renderJson(result: ScanResult): string {
   return JSON.stringify(result, null, 2);

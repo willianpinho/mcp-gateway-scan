@@ -1,4 +1,4 @@
-import { anyMatch, capEvidence, findLines } from "../match.js";
+import { anyMatch, capEvidence, findAntiPattern, findLines } from "../match.js";
 import type {
   DimensionModule,
   DimensionResult,
@@ -27,11 +27,13 @@ export const d1Rbac: DimensionModule = {
   id: "D1",
   title: "Tool-access governance & RBAC",
   run(ctx: ScanContext): DimensionResult {
-    const promptAuthz = findLines(
+    // Only fires inside actual prompt content (template literal / YAML prompt
+    // field), never on comments or doc lines that quote the grep recipe.
+    const promptAuthz = findAntiPattern(
       ctx,
       AUTHZ_IN_PROMPT,
-      { label: "authz-in-prompt", polarity: "negative" },
-      { codeOnly: true },
+      { label: "authz-in-prompt" },
+      { codeOnly: true, requirePrompt: true },
     );
     const policyLines = findLines(
       ctx,

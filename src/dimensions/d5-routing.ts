@@ -31,25 +31,25 @@ export const d5Routing: DimensionModule = {
       ctx,
       MAX_TOKENS,
       { label: "max_tokens bound", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const budget = findLines(
       ctx,
       BUDGET,
       { label: "budget/quota cap", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const rateLimit = findLines(
       ctx,
       RATE_LIMIT,
       { label: "rate limit", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const routing = findLines(
       ctx,
       ROUTING,
       { label: "routing policy", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
 
     const hasMaxTokens = maxTokens.length > 0;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { renderJson, renderText } from "./report.js";
+import { renderCi, renderJson, renderText } from "./report.js";
 import { ScanResultSchema } from "./types.js";
 import { VERSION, scan } from "./scanner.js";
 
@@ -19,6 +19,7 @@ ARGUMENTS
 
 OPTIONS
   --json          Emit machine-readable JSON instead of the terminal report.
+  --ci            Compact, no-color output for pipelines; exits 1 on any RED.
   --no-color      Disable ANSI colors in the terminal report.
   -h, --help      Show this help.
   -v, --version   Print the version.
@@ -39,13 +40,17 @@ GUARANTEES
 
 EXIT CODES
   0  scan completed, no red dimensions
-  1  scan completed, one or more red dimensions
+  1  scan completed, one or more red dimensions  (wire --ci into CI to gate)
   2  usage / IO error
+
+CI USAGE
+  mcp-gateway-scan ./gateway --ci   # fails the build if any dimension is RED
 `;
 
 interface ParsedArgs {
   path: string;
   json: boolean;
+  ci: boolean;
   color: boolean;
   showHelp: boolean;
   showVersion: boolean;
@@ -55,6 +60,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const parsed: ParsedArgs = {
     path: ".",
     json: false,
+    ci: false,
     color: process.stdout.isTTY === true,
     showHelp: false,
     showVersion: false,
@@ -64,6 +70,10 @@ function parseArgs(argv: string[]): ParsedArgs {
     switch (arg) {
       case "--json":
         parsed.json = true;
+        break;
+      case "--ci":
+        parsed.ci = true;
+        parsed.color = false; // pipelines: no ANSI
         break;
       case "--no-color":
         parsed.color = false;
@@ -120,8 +130,16 @@ function main(): void {
     return;
   }
 
+  if (result.scannedFiles === 0) {
+    process.stderr.write(
+      `Warning: no scannable files found under ${target} (nothing to assess).\n`,
+    );
+  }
+
   if (args.json) {
     process.stdout.write(`${renderJson(result)}\n`);
+  } else if (args.ci) {
+    process.stdout.write(renderCi(result));
   } else {
     process.stdout.write(renderText(result, args.color));
   }

@@ -1,4 +1,5 @@
 import { capEvidence, findLines } from "../match.js";
+import { classifyLines } from "../match-context.js";
 import type {
   DimensionModule,
   DimensionResult,
@@ -38,12 +39,15 @@ const IDP =
 function findInlineSecrets(ctx: ScanContext): Evidence[] {
   const out: Evidence[] = [];
   for (const file of ctx.files) {
-    // Skip example/template env files and prose by intent? No — example files
-    // can still leak. But a literal that is clearly a placeholder env reference
-    // is excluded by SECRET_REFERENCE check below per-line.
+    const classes = classifyLines(file);
     for (let i = 0; i < file.lines.length; i++) {
       const line = file.lines[i];
-      if (line === undefined) continue;
+      const cls = classes[i];
+      if (line === undefined || cls === undefined) continue;
+      // Skip "meta" lines that DOCUMENT the secret pattern rather than commit a
+      // secret — e.g. a README grep recipe `rg -n 'sk-[A-Za-z0-9]'` or a regex
+      // in a comment. A real value-shaped token in plain code/config still fires.
+      if (cls.meta) continue;
       // If the line is purely a manager reference, it is not an inline secret.
       const looksLikeRef =
         SECRET_REFERENCE.test(line) &&
@@ -83,13 +87,13 @@ export const d6Secrets: DimensionModule = {
       ctx,
       SECRET_REFERENCE,
       { label: "secret-manager / env reference", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
     const idp = findLines(
       ctx,
       IDP,
       { label: "IDP / OIDC identity", polarity: "positive" },
-      { skipComments: true },
+      { skipComments: true, codeOnly: true },
     );
 
     let color: DimensionResult["color"];
