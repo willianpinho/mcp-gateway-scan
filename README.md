@@ -3,7 +3,7 @@
 > Read-only static scanner for **MCP / agent-gateway production-readiness anti-patterns.**
 > Point it at a repo, get a 7-dimension red/yellow/green score in seconds.
 
-Built by the team behind the **[Provenwright MCP Gateway Readiness Audit](https://agency.willianpinho.com/sample/)** —
+Built by the team behind the **[Provenwright MCP Gateway Readiness Audit](https://provenwright.com/sample/)** —
 a full cited audit with evidence index, scored gap matrix, and 90-day roadmap.
 Full audit: [willianpinho.com/mcp-audit](https://willianpinho.com/mcp-audit)
 
@@ -181,11 +181,11 @@ remediation roadmap.
 | Delivery   | instant, automated       | expert engagement + live review session                |
 
 > **Need the full audit?** This scanner is a free heuristic wedge.
-> The **[Provenwright MCP Gateway Readiness Audit](https://agency.willianpinho.com/sample/)** goes deeper:
+> The **[Provenwright MCP Gateway Readiness Audit](https://provenwright.com/sample/)** goes deeper:
 > read-only assessment of your live codebase, per-finding evidence (file + line),
 > a cited Gap Matrix, and a sequenced 90-day remediation roadmap.
 >
-> See a sample report: [agency.willianpinho.com/sample/](https://agency.willianpinho.com/sample/)  
+> See a sample report: [provenwright.com/sample/](https://provenwright.com/sample/)  
 > Full audit info: [willianpinho.com/mcp-audit](https://willianpinho.com/mcp-audit)  
 > Book a 15-min call: [cal.com/willianpinho](https://cal.com/willianpinho)  
 > Email: me@willianpinho.com
