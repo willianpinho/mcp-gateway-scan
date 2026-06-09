@@ -1,0 +1,132 @@
+#!/usr/bin/env node
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { renderJson, renderText } from "./report.js";
+import { ScanResultSchema } from "./types.js";
+import { VERSION, scan } from "./scanner.js";
+
+const HELP = `
+mcp-gateway-scan v${VERSION}
+
+  Read-only static scanner for MCP / agent-gateway production-readiness
+  anti-patterns. Scores a repository across 7 dimensions (red/yellow/green).
+
+USAGE
+  mcp-gateway-scan <path> [options]
+
+ARGUMENTS
+  <path>          File or directory to scan (defaults to current directory).
+
+OPTIONS
+  --json          Emit machine-readable JSON instead of the terminal report.
+  --no-color      Disable ANSI colors in the terminal report.
+  -h, --help      Show this help.
+  -v, --version   Print the version.
+
+DIMENSIONS
+  D1  Tool-access governance & RBAC      (authz-in-prompt, missing policy layer)
+  D2  Fail-close / fail-open posture      (catch returns allow/true, no timeouts)
+  D3  Onboarding & supply-chain pinning   (:latest, @main, npx -y @, unpinned)
+  D4  Observability & tracing             (OTel / traceparent / spans)
+  D5  Multi-LLM routing & cost controls   (max_tokens, budget, rate limit, quota)
+  D6  Security, secrets & identity        (inline secrets — location only, never value)
+  D7  Production-readiness                (kill-switch, 429, eval/red-team)
+
+GUARANTEES
+  - Read-only: only READS files; never executes the target's code.
+  - Never prints secret values — only "inline secret literal at <file:line>".
+  - Ignores node_modules, .git, dist, build, and similar.
+
+EXIT CODES
+  0  scan completed, no red dimensions
+  1  scan completed, one or more red dimensions
+  2  usage / IO error
+`;
+
+interface ParsedArgs {
+  path: string;
+  json: boolean;
+  color: boolean;
+  showHelp: boolean;
+  showVersion: boolean;
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
+  const parsed: ParsedArgs = {
+    path: ".",
+    json: false,
+    color: process.stdout.isTTY === true,
+    showHelp: false,
+    showVersion: false,
+  };
+  let pathSet = false;
+  for (const arg of argv) {
+    switch (arg) {
+      case "--json":
+        parsed.json = true;
+        break;
+      case "--no-color":
+        parsed.color = false;
+        break;
+      case "--color":
+        parsed.color = true;
+        break;
+      case "-h":
+      case "--help":
+        parsed.showHelp = true;
+        break;
+      case "-v":
+      case "--version":
+        parsed.showVersion = true;
+        break;
+      default:
+        if (arg.startsWith("-")) {
+          process.stderr.write(`Unknown option: ${arg}\n`);
+          process.exit(2);
+        }
+        if (!pathSet) {
+          parsed.path = arg;
+          pathSet = true;
+        }
+    }
+  }
+  return parsed;
+}
+
+function main(): void {
+  const args = parseArgs(process.argv.slice(2));
+
+  if (args.showHelp) {
+    process.stdout.write(`${HELP}\n`);
+    process.exit(0);
+  }
+  if (args.showVersion) {
+    process.stdout.write(`${VERSION}\n`);
+    process.exit(0);
+  }
+
+  const target = resolve(args.path);
+  if (!existsSync(target)) {
+    process.stderr.write(`Error: path does not exist: ${target}\n`);
+    process.exit(2);
+  }
+
+  let result;
+  try {
+    result = ScanResultSchema.parse(scan(target));
+  } catch (err) {
+    process.stderr.write(`Error: scan failed: ${(err as Error).message}\n`);
+    process.exit(2);
+    return;
+  }
+
+  if (args.json) {
+    process.stdout.write(`${renderJson(result)}\n`);
+  } else {
+    process.stdout.write(renderText(result, args.color));
+  }
+
+  process.exit(result.score.red > 0 ? 1 : 0);
+}
+
+main();

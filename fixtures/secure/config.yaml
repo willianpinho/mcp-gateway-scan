@@ -1,0 +1,40 @@
+# Secure fixture: declarative routing + cost caps + prod-readiness controls.
+router:
+  fallback:
+    - model: gpt-4o-2024-08-06
+    - model: claude-3-5-sonnet-20241022
+  max_tokens: 4096
+
+budgets:
+  default:
+    quota: 100000 # tokens per team per day
+    cost_limit: 50.00 # USD cap, action = deny
+  action_at_cap: deny
+
+rate_limit:
+  rpm: 60
+  tpm: 90000
+  on_exceed: 429
+
+feature_flags:
+  delete_record:
+    enabled: false # kill-switch: deploy-free disable
+
+identity:
+  oidc:
+    issuer: https://acme.okta.com
+    jwks_uri: https://acme.okta.com/oauth2/v1/keys
+    audience: mcp-gateway
+    expires_in: 3600
+
+eval:
+  red_team_suite: promptfoo
+  refusal_rate_threshold: 0.95
+
+rollout:
+  strategy: canary
+  rollback: helm rollback mcp-gateway
+
+observability:
+  otel:
+    traceparent: propagate

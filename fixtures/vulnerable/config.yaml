@@ -1,0 +1,9 @@
+# Vulnerable fixture: no routing policy, no caps, no kill-switch, no eval gate.
+server:
+  host: 0.0.0.0
+  port: 8080
+  # No max_tokens, no budget, no quota, no rate_limit, no 429 handling.
+  # No feature flags / kill-switch.
+  # No OIDC / IDP identity wiring.
+  # No eval / red-team suite.
+  model: gpt-4o

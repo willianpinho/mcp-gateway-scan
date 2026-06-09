@@ -1,0 +1,41 @@
+{
+  "name": "mcp-gateway-scan",
+  "version": "0.1.0",
+  "description": "Read-only static scanner for MCP/agent-gateway production-readiness anti-patterns. Scores a repo across 7 dimensions.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "mcp-gateway-scan": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/cli.js",
+    "selftest": "node dist/cli.js fixtures/vulnerable && node dist/cli.js fixtures/secure"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "agent-gateway",
+    "security",
+    "audit",
+    "scanner",
+    "owasp-llm",
+    "production-readiness"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4"
+  }
+}

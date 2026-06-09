@@ -1,0 +1,12 @@
+# Vulnerable fixture: floating image tags, inline secret (FAKE), no pinning.
+services:
+  gateway:
+    image: acme/mcp-gateway:latest
+    environment:
+      # Inline secret literal (FAKE placeholder for scanner testing):
+      AWS_ACCESS_KEY_ID: AKIAEXAMPLENOTREAL01
+      DATABASE_PASSWORD: hunter2hunter2hunter2supersecret
+    command: npx -y @acme/mcp-server@latest
+
+  extra:
+    image: third-party/server@main
