@@ -135,7 +135,11 @@ fault-injection, inspect your live IAM/IDP, or read your traces. That depth is w
 remediation roadmap.
 
 > **Need the full audit?** Get the 7-dimension MCP Gateway Readiness Audit —
-> a cited Gap Matrix + 90-day remediation roadmap → https://willianpinho.com/mcp-audit
+> a cited Gap Matrix + 90-day remediation roadmap →
+> https://agency.willianpinho.com/mcp-audit
+>
+> Book a 15-min call: https://cal.com/willianpinho  
+> Email: me@willianpinho.com
 
 ## License
 

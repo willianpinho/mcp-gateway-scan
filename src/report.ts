@@ -129,7 +129,7 @@ export function renderText(result: ScanResult, useColor: boolean): string {
   }
   out.push(
     dim(
-      "    Get the 7-dimension MCP Gateway Readiness Audit → https://willianpinho.com/mcp-audit",
+      "    Get the 7-dimension MCP Gateway Readiness Audit → https://agency.willianpinho.com/mcp-audit",
     ),
   );
   out.push("");
