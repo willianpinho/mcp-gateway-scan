@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { startMcpServer } from "./mcp-server.js";
 import { renderCi, renderJson, renderText } from "./report.js";
 import { ScanResultSchema } from "./types.js";
 import { VERSION, scan } from "./scanner.js";
@@ -13,9 +14,12 @@ mcp-gateway-scan v${VERSION}
 
 USAGE
   mcp-gateway-scan <path> [options]
+  mcp-gateway-scan mcp                 Start a stdio MCP server (use from an agent).
 
 ARGUMENTS
   <path>          File or directory to scan (defaults to current directory).
+  mcp             Run as an MCP server over stdio, exposing the scan_gateway tool
+                  to Claude Code / Cursor. See README → "Run it inside Claude Code".
 
 OPTIONS
   --json          Emit machine-readable JSON instead of the terminal report.
@@ -104,7 +108,21 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function main(): void {
-  const args = parseArgs(process.argv.slice(2));
+  const rawArgs = process.argv.slice(2);
+
+  // Subcommand: `mcp-gateway-scan mcp` starts a stdio MCP server. Branch here
+  // (first arg exactly "mcp") so the default `<path>` scan behavior is untouched.
+  if (rawArgs[0] === "mcp") {
+    startMcpServer().catch((err: unknown) => {
+      process.stderr.write(
+        `Error: MCP server failed to start: ${(err as Error).message}\n`
+      );
+      process.exit(2);
+    });
+    return; // server keeps the process alive on the stdio transport
+  }
+
+  const args = parseArgs(rawArgs);
 
   if (args.showHelp) {
     process.stdout.write(`${HELP}\n`);
@@ -132,7 +150,7 @@ function main(): void {
 
   if (result.scannedFiles === 0) {
     process.stderr.write(
-      `Warning: no scannable files found under ${target} (nothing to assess).\n`,
+      `Warning: no scannable files found under ${target} (nothing to assess).\n`
     );
   }
 

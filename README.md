@@ -49,6 +49,40 @@ Exit codes:
   2  usage / IO error
 ```
 
+## Run it inside Claude Code / Cursor (MCP server)
+
+The same package can also run as an **MCP server** so your agent runs the scan
+conversationally — just ask it to "scan this repo for gateway-readiness".
+
+**Claude Code** (one command):
+
+```bash
+claude mcp add gateway-scan -- npx -y mcp-gateway-scan mcp
+```
+
+**Cursor / any MCP client** — add to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "gateway-scan": {
+      "command": "npx",
+      "args": ["-y", "mcp-gateway-scan", "mcp"]
+    }
+  }
+}
+```
+
+Then ask your agent to run the **`scan_gateway`** tool:
+
+- Input: `{ "path": "<repo or dir>", "ci": false }` (`ci` optional — adds the CI gate verdict).
+- Output: a per-dimension 🟢🟡🔴 summary + the structured result. Read-only; scans
+  only the path you give it; secret values stay redacted (location only, never the value).
+
+> Same package, two modes — `mcp-gateway-scan mcp` is **the server** (use it from your
+> agent); the default `mcp-gateway-scan <path>` is **the CLI** (run it directly in a terminal
+> or CI). The `mcp` subcommand does not change the CLI behavior.
+
 ## Example output
 
 ```
@@ -136,7 +170,7 @@ remediation roadmap.
 
 > **Need the full audit?** Get the 7-dimension MCP Gateway Readiness Audit —
 > a cited Gap Matrix + 90-day remediation roadmap →
-> https://agency.willianpinho.com/mcp-audit
+> https://willianpinho.com/mcp-audit
 >
 > Book a 15-min call: https://cal.com/willianpinho  
 > Email: me@willianpinho.com
