@@ -25,6 +25,7 @@ OPTIONS
   --json          Emit machine-readable JSON instead of the terminal report.
   --ci            Compact, no-color output for pipelines; exits 1 on any RED.
   --no-color      Disable ANSI colors in the terminal report.
+  --no-cta        Suppress the closing readiness-audit pointer in the report.
   -h, --help      Show this help.
   -v, --version   Print the version.
 
@@ -56,6 +57,7 @@ interface ParsedArgs {
   json: boolean;
   ci: boolean;
   color: boolean;
+  cta: boolean;
   showHelp: boolean;
   showVersion: boolean;
 }
@@ -66,6 +68,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     json: false,
     ci: false,
     color: process.stdout.isTTY === true,
+    cta: true,
     showHelp: false,
     showVersion: false,
   };
@@ -81,6 +84,9 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--no-color":
         parsed.color = false;
+        break;
+      case "--no-cta":
+        parsed.cta = false;
         break;
       case "--color":
         parsed.color = true;
@@ -115,7 +121,7 @@ function main(): void {
   if (rawArgs[0] === "mcp") {
     startMcpServer().catch((err: unknown) => {
       process.stderr.write(
-        `Error: MCP server failed to start: ${(err as Error).message}\n`
+        `Error: MCP server failed to start: ${(err as Error).message}\n`,
       );
       process.exit(2);
     });
@@ -150,7 +156,7 @@ function main(): void {
 
   if (result.scannedFiles === 0) {
     process.stderr.write(
-      `Warning: no scannable files found under ${target} (nothing to assess).\n`
+      `Warning: no scannable files found under ${target} (nothing to assess).\n`,
     );
   }
 
@@ -159,7 +165,7 @@ function main(): void {
   } else if (args.ci) {
     process.stdout.write(renderCi(result));
   } else {
-    process.stdout.write(renderText(result, args.color));
+    process.stdout.write(renderText(result, args.color, args.cta));
   }
 
   process.exit(result.score.red > 0 ? 1 : 0);

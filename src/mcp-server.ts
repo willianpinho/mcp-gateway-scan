@@ -17,10 +17,6 @@ import type { Color, ScanResult } from "./types.js";
  * All diagnostics go to stderr (see startMcpServer below).
  */
 
-const CTA =
-  "Found reds? Full MCP Gateway Readiness Audit → " +
-  "https://willianpinho.com/mcp-audit · me@willianpinho.com";
-
 const DOT: Record<Color, string> = {
   green: "🟢",
   yellow: "🟡",
@@ -31,7 +27,7 @@ const DOT: Record<Color, string> = {
 function renderSummary(result: ScanResult): string {
   const lines: string[] = [];
   lines.push(
-    `mcp-gateway-scan v${result.version} — ${result.scannedFiles} files scanned (read-only)`
+    `mcp-gateway-scan v${result.version} — ${result.scannedFiles} files scanned (read-only)`,
   );
   lines.push(`target: ${result.target}`);
   lines.push("");
@@ -40,20 +36,18 @@ function renderSummary(result: ScanResult): string {
     lines.push(
       `${DOT[d.color]} ${d.id} ${d.title} — ${
         d.severity
-      } (findings=${findings})`
+      } (findings=${findings})`,
     );
   }
   lines.push("");
   lines.push(
-    `SCORE: ${result.score.green} green · ${result.score.yellow} yellow · ${result.score.red} red`
+    `SCORE: ${result.score.green} green · ${result.score.yellow} yellow · ${result.score.red} red`,
   );
   lines.push(
     result.score.red > 0
       ? "VERDICT: FAIL — one or more RED dimensions are launch blockers."
-      : "VERDICT: PASS — no RED dimensions."
+      : "VERDICT: PASS — no RED dimensions.",
   );
-  lines.push("");
-  lines.push(CTA);
   return lines.join("\n");
 }
 
@@ -64,7 +58,7 @@ function renderSummary(result: ScanResult): string {
  */
 function runScan(
   inputPath: string,
-  ci: boolean
+  ci: boolean,
 ): {
   content: { type: "text"; text: string }[];
   structuredContent?: Record<string, unknown>;
@@ -102,7 +96,7 @@ function runScan(
   const summaryText =
     result.scannedFiles === 0
       ? `${renderSummary(
-          result
+          result,
         )}\n\n(No scannable files were found under the path — nothing to assess.)`
       : renderSummary(result);
 
@@ -144,7 +138,7 @@ export function buildServer(): McpServer {
           .boolean()
           .optional()
           .describe(
-            "If true, also report the CI gate verdict (would fail on any RED)."
+            "If true, also report the CI gate verdict (would fail on any RED).",
           ),
       },
       annotations: {
@@ -152,7 +146,7 @@ export function buildServer(): McpServer {
         openWorldHint: false,
       },
     },
-    async ({ path, ci }) => runScan(path, ci ?? false)
+    async ({ path, ci }) => runScan(path, ci ?? false),
   );
 
   return server;
@@ -167,6 +161,6 @@ export async function startMcpServer(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   process.stderr.write(
-    `mcp-gateway-scan v${VERSION} — MCP server ready (stdio). Tool: scan_gateway\n`
+    `mcp-gateway-scan v${VERSION} — MCP server ready (stdio). Tool: scan_gateway\n`,
   );
 }
