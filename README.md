@@ -3,6 +3,10 @@
 > Read-only static scanner for **MCP / agent-gateway production-readiness anti-patterns.**
 > Point it at a repo, get a 7-dimension red/yellow/green score in seconds.
 
+Built by the team behind the **[Keelworks MCP Gateway Readiness Audit](https://agency.willianpinho.com/sample/)** —
+a full cited audit with evidence index, scored gap matrix, and 90-day roadmap.
+Full audit: [willianpinho.com/mcp-audit](https://willianpinho.com/mcp-audit)
+
 ```bash
 npx mcp-gateway-scan ./path/to/your/gateway
 ```
@@ -168,11 +172,14 @@ fault-injection, inspect your live IAM/IDP, or read your traces. That depth is w
 **MCP Gateway Readiness Audit** provides: a cited Gap Matrix and a sequenced 90-day
 remediation roadmap.
 
-> **Need the full audit?** Get the 7-dimension MCP Gateway Readiness Audit —
-> a cited Gap Matrix + 90-day remediation roadmap →
-> https://willianpinho.com/mcp-audit
+> **Need the full audit?** This scanner is a free heuristic wedge.
+> The **[Keelworks MCP Gateway Readiness Audit](https://agency.willianpinho.com/sample/)** goes deeper:
+> read-only assessment of your live codebase, per-finding evidence (file + line),
+> a cited Gap Matrix, and a sequenced 90-day remediation roadmap.
 >
-> Book a 15-min call: https://cal.com/willianpinho  
+> See a sample report: [agency.willianpinho.com/sample/](https://agency.willianpinho.com/sample/)  
+> Full audit info: [willianpinho.com/mcp-audit](https://willianpinho.com/mcp-audit)  
+> Book a 15-min call: [cal.com/willianpinho](https://cal.com/willianpinho)  
 > Email: me@willianpinho.com
 
 ## License
