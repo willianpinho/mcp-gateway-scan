@@ -172,6 +172,14 @@ fault-injection, inspect your live IAM/IDP, or read your traces. That depth is w
 **MCP Gateway Readiness Audit** provides: a cited Gap Matrix and a sequenced 90-day
 remediation roadmap.
 
+|            | This scanner (free, MIT) | Full MCP Gateway Readiness Audit (paid)                |
+| ---------- | ------------------------ | ------------------------------------------------------ |
+| Method     | static pattern checks    | read-only review of your live codebase                 |
+| Live tests | —                        | fault-injection (F1–F5), trace verification            |
+| Evidence   | matched line             | per-finding `file:line` in an evidence index           |
+| Output     | 7-dimension score        | cited gap matrix + severity + sequenced 90-day roadmap |
+| Delivery   | instant, automated       | expert engagement + live review session                |
+
 > **Need the full audit?** This scanner is a free heuristic wedge.
 > The **[Keelworks MCP Gateway Readiness Audit](https://agency.willianpinho.com/sample/)** goes deeper:
 > read-only assessment of your live codebase, per-finding evidence (file + line),
