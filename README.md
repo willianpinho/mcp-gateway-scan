@@ -1,5 +1,9 @@
 # mcp-gateway-scan
 
+[![npm version](https://img.shields.io/npm/v/mcp-gateway-scan.svg)](https://www.npmjs.com/package/mcp-gateway-scan)
+[![Glama server](https://glama.ai/mcp/servers/willianpinho/mcp-gateway-scan/badges/score.svg)](https://glama.ai/mcp/servers/willianpinho/mcp-gateway-scan)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > Read-only static scanner for **MCP / agent-gateway production-readiness anti-patterns.**
 > Point it at a repo, get a 7-dimension red/yellow/green score in seconds.
 
@@ -86,6 +90,13 @@ Then ask your agent to run the **`scan_gateway`** tool:
 > Same package, two modes — `mcp-gateway-scan mcp` is **the server** (use it from your
 > agent); the default `mcp-gateway-scan <path>` is **the CLI** (run it directly in a terminal
 > or CI). The `mcp` subcommand does not change the CLI behavior.
+
+### Or find it on Glama
+
+`mcp-gateway-scan` is listed on the **[Glama MCP directory](https://glama.ai/mcp/servers/willianpinho/mcp-gateway-scan)**,
+where you can inspect its tool schema, **Try it in the browser**, or deploy the containerized
+server straight from the listing. The build spec and release process are documented in
+[`docs/glama-release.md`](docs/glama-release.md).
 
 ## Example output
 
