@@ -8,7 +8,7 @@ import { d7ProdReady } from "./dimensions/d7-prodready.js";
 import { loadFiles } from "./walker.js";
 import type { DimensionModule, ScanContext, ScanResult } from "./types.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 
 /** The seven dimension modules, in canonical order. */
 export const DIMENSIONS: DimensionModule[] = [
