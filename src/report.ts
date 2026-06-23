@@ -1,5 +1,11 @@
 import type { Color, ScanResult } from "./types.js";
 
+/**
+ * Audit landing page. Kept as a single constant so the CTA URL can be updated in
+ * one place when the funnel destination changes.
+ */
+const AUDIT_URL = "https://provenwright.com/audit";
+
 const RESET = "\x1b[0m";
 const BOLD = "\x1b[1m";
 const DIM = "\x1b[2m";
@@ -112,37 +118,105 @@ export function renderText(
 
   // Closing CTA (human report only; suppressible via --no-cta).
   if (showCta) {
-    const launchBlocked =
-      result.dimensions.find((d) => d.id === "D2")?.color === "red" ||
-      result.score.red > 0;
-    if (launchBlocked) {
-      out.push(
-        cyan(
-          "  → Reds above are launch blockers. A full readiness audit produces the cited",
-        ),
-      );
-      out.push(
-        cyan("    Gap Matrix + a sequenced 90-day remediation roadmap."),
-      );
-    } else {
-      out.push(
-        cyan(
-          "  → No reds. A full readiness audit verifies fail-close behavior with",
-        ),
-      );
-      out.push(
-        cyan("    staged fault-injection and closes the remaining yellows."),
-      );
-    }
-    out.push(
-      dim(
-        "    Get the full Provenwright MCP Gateway Readiness Audit → https://willianpinho.com/mcp-audit",
-      ),
-    );
-    out.push("");
+    for (const line of renderCta(result, useColor)) out.push(line);
   }
 
   return out.join("\n");
+}
+
+const CTA_RULE =
+  "  ─────────────────────────────────────────────────────────────────────";
+
+/**
+ * Render the honest closing CTA appended to the human report.
+ *
+ * The copy names what a static config scan CAN and CANNOT assess, then points to
+ * the full audit — signal, not spam. Two variants:
+ *   - clean scan (0 red, 0 yellow): "config clean — here's what a static scan can't see"
+ *   - findings present (any yellow/red): the full "found vs can't see" breakdown
+ *
+ * If the scanner ever gains a capability listed below (e.g. trace analysis), drop
+ * the corresponding bullet so the copy stays honest.
+ */
+function renderCta(result: ScanResult, useColor: boolean): string[] {
+  const b = (s: string) => (useColor ? `${BOLD}${s}${RESET}` : s);
+  const dim = (s: string) => (useColor ? `${DIM}${s}${RESET}` : s);
+  const cyan = (s: string) => (useColor ? `${CYAN}${s}${RESET}` : s);
+
+  const out: string[] = [];
+  const isClean = result.score.red === 0 && result.score.yellow === 0;
+
+  out.push(dim(CTA_RULE));
+
+  if (isClean) {
+    out.push(b("  Your static config looks clean. Here's what to check next."));
+    out.push("");
+    for (const l of wrap(
+      "This scan found no surface-level config anti-patterns. That's a good sign — and it's only part of the picture.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+    out.push("");
+    for (const l of wrap(
+      "Static config analysis can't assess fail-close behavior, live permission scope, prompt-injection paths, or whether your observability is good enough to reconstruct a misbehaving call.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+    out.push("");
+    for (const l of wrap(
+      "If you're shipping to production in the next 90 days, those gaps are worth checking before you ship.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+  } else {
+    out.push(b("  What this scan found vs. what it can't see"));
+    out.push("");
+    for (const l of wrap(
+      "This scan checked surface-level configuration patterns across your MCP setup — unpinned registries, missing auth patterns, inline secret indicators, absent rate-limit config, and similar static signals.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+    out.push("");
+    out.push(dim("  What it cannot assess:"));
+    const gaps = [
+      "Whether your agents actually fail closed when the gateway degrades (requires fault testing in a staging environment)",
+      "Whether tool permissions are scoped to least-privilege in practice, not just in config (requires tracing live calls)",
+      "Whether a new MCP server can enter production without a review gate (requires walking your actual onboarding flow)",
+      "Whether prompt-injection paths exist between tools (requires reading the tool-interaction graph, not just files)",
+      "Whether your observability captures enough to reconstruct a misbehaving call after the fact (requires log/trace review)",
+    ];
+    for (const gap of gaps) {
+      const [first = "", ...rest] = wrap(gap, 6);
+      out.push(dim(`    • ${first.trimStart()}`));
+      for (const cont of rest) out.push(dim(cont));
+    }
+    out.push("");
+    for (const l of wrap(
+      "These are the risks that cause incidents. They don't show up in a static scan.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+    out.push("");
+    out.push(b("  Get a production-readiness audit"));
+    out.push("");
+    for (const l of wrap(
+      "The MCP Production-Readiness Audit covers all 7 dimensions — including everything above — in one week at a fixed price. You get a named go/no-go verdict, a scored gap matrix, and a prioritized 90-day roadmap.",
+      2,
+    )) {
+      out.push(dim(l));
+    }
+  }
+
+  out.push("");
+  out.push(cyan(`  → ${AUDIT_URL}`));
+  out.push(dim(CTA_RULE));
+  out.push("");
+  return out;
 }
 
 /**
