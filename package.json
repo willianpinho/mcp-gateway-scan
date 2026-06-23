@@ -1,6 +1,6 @@
 {
   "name": "mcp-gateway-scan",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Read-only static scanner for MCP/agent-gateway production-readiness anti-patterns. Scores a repo across 7 dimensions.",
   "license": "MIT",
   "author": "Willian Pinho",
