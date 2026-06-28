@@ -57,6 +57,35 @@ Exit codes:
   2  usage / IO error
 ```
 
+## "Should I connect to this server?" — the connect verdict
+
+Before you wire a **third-party** MCP server into an agent that holds real credentials,
+point `connect` at it and get a single top-line verdict — **CONNECT**, **REVIEW**, or
+**DO-NOT-CONNECT** — over the same 7 dimensions, with the single worst finding surfaced first.
+
+```bash
+# the server's repo checkout
+mcp-gateway-scan connect ./some-mcp-server
+
+# its MCP client config entry (.mcp.json / claude_desktop_config.json)
+mcp-gateway-scan connect ./.mcp.json
+
+# its package manifest
+mcp-gateway-scan connect ./package.json
+```
+
+The verdict reduces the dimension scores into one decision:
+
+| Verdict            | When                                                | Exit |
+| ------------------ | --------------------------------------------------- | ---- |
+| **DO-NOT-CONNECT** | any **S1** (full-compromise-class) dimension is red | 1    |
+| **REVIEW**         | concrete-or-possible risk (red S2/S3 or any yellow) | 1    |
+| **CONNECT**        | every dimension green on the static checks          | 0    |
+
+Same scan engine, same `--json` / `--ci` flags, same read-only / secret-redaction guarantees —
+`connect` only re-frames the output as a connect/no-connect decision. A green CONNECT is a good
+signal, not a guarantee: a static scan cannot vouch for the publisher or runtime behavior.
+
 ## Run it inside Claude Code / Cursor (MCP server)
 
 The same package can also run as an **MCP server** so your agent runs the scan
