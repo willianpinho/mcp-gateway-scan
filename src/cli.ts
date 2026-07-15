@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  renderConnectCi,
+  renderConnectJson,
+  renderConnectText,
+} from "./connect-report.js";
+import { resolveConnectTarget } from "./connect-target.js";
+import { computeVerdict, verdictExitCode } from "./connect.js";
 import { startMcpServer } from "./mcp-server.js";
 import { renderCi, renderJson, renderText } from "./report.js";
 import { ScanResultSchema } from "./types.js";
@@ -14,10 +21,16 @@ mcp-gateway-scan v${VERSION}
 
 USAGE
   mcp-gateway-scan <path> [options]
+  mcp-gateway-scan connect <target> [options]   "Should I connect to this server?"
   mcp-gateway-scan mcp                 Start a stdio MCP server (use from an agent).
 
 ARGUMENTS
   <path>          File or directory to scan (defaults to current directory).
+  connect <target>  Assess a THIRD-PARTY MCP server before wiring it into an agent.
+                  <target> is the server's repo checkout (dir), its MCP client
+                  config entry (.mcp.json / claude_desktop_config.json), or its
+                  package.json. Prints a top-line CONNECT / REVIEW / DO-NOT-CONNECT
+                  verdict + the worst finding, over the same 7 dimensions.
   mcp             Run as an MCP server over stdio, exposing the scan_gateway tool
                   to Claude Code / Cursor. See README → "Run it inside Claude Code".
 
@@ -44,8 +57,8 @@ GUARANTEES
   - Ignores node_modules, .git, dist, build, and similar.
 
 EXIT CODES
-  0  scan completed, no red dimensions
-  1  scan completed, one or more red dimensions  (wire --ci into CI to gate)
+  0  scan completed, no red dimensions       (connect: verdict CONNECT)
+  1  scan completed, one or more red dimensions  (connect: REVIEW / DO-NOT-CONNECT)
   2  usage / IO error
 
 CI USAGE
@@ -113,8 +126,63 @@ function parseArgs(argv: string[]): ParsedArgs {
   return parsed;
 }
 
+/**
+ * `mcp-gateway-scan connect <target> [options]` — assess a third-party server
+ * before connecting. Reuses the existing scan core + schema, then reduces it to
+ * a CONNECT / REVIEW / DO-NOT-CONNECT verdict. Exits 0 only on CONNECT.
+ */
+function runConnect(rawArgs: string[]): void {
+  const args = parseArgs(rawArgs.slice(1));
+  // `connect` with no target, or `connect .`, scans the current directory.
+  const spec = resolve(args.path);
+  if (!existsSync(spec)) {
+    process.stderr.write(`Error: connect target does not exist: ${spec}\n`);
+    process.exit(2);
+  }
+
+  const targetMeta = resolveConnectTarget(spec);
+
+  let result;
+  try {
+    result = ScanResultSchema.parse(scan(targetMeta.root));
+  } catch (err) {
+    process.stderr.write(
+      `Error: connect scan failed: ${(err as Error).message}\n`,
+    );
+    process.exit(2);
+    return;
+  }
+
+  if (result.scannedFiles === 0) {
+    process.stderr.write(
+      `Warning: no scannable files found under ${spec} — cannot assess connect safety.\n`,
+    );
+  }
+
+  const verdict = computeVerdict(result);
+
+  if (args.json) {
+    process.stdout.write(`${renderConnectJson(result, targetMeta, verdict)}\n`);
+  } else if (args.ci) {
+    process.stdout.write(renderConnectCi(result, targetMeta, verdict));
+  } else {
+    process.stdout.write(
+      renderConnectText(result, targetMeta, verdict, args.color, args.cta),
+    );
+  }
+
+  process.exit(verdictExitCode(verdict.verdict));
+}
+
 function main(): void {
   const rawArgs = process.argv.slice(2);
+
+  // Subcommand: `mcp-gateway-scan connect <target>` assesses a third-party server.
+  // Branch before the default path scan so that behavior is untouched.
+  if (rawArgs[0] === "connect") {
+    runConnect(rawArgs);
+    return;
+  }
 
   // Subcommand: `mcp-gateway-scan mcp` starts a stdio MCP server. Branch here
   // (first arg exactly "mcp") so the default `<path>` scan behavior is untouched.
